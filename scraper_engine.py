@@ -206,7 +206,10 @@ LOCAL_PORTALS: List[Dict] = [
     {"name": "Lakeynews", "search": "https://lakeynews.com/?s={q}"} # Kuat di area Dompu
 ]
 
-_UA = UserAgent()
+try:
+    _UA = UserAgent()
+except Exception:
+    _UA = None  # fallback: use static UA string below
 
 # ── DATE PARSING — HARD FILTER: year < 2026 → None ───────────────────────────
 _REL = re.compile(r"(\d+)\s+(second|minute|hour|day|week|month)s?\s+ago", re.I)
@@ -319,9 +322,13 @@ def search_serper(api_key: str, query: str, tbs: str, num: int = 10) -> List[Dic
 
 
 # ── LOCAL PORTAL SCRAPER ──────────────────────────────────────────────────────
+_FALLBACK_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+
+
 def _portal_headers() -> Dict:
+    ua = _UA.random if _UA else _FALLBACK_UA
     return {
-        "User-Agent":      _UA.random,
+        "User-Agent":      ua,
         "Accept":          "text/html,application/xhtml+xml,*/*;q=0.8",
         "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
         "Accept-Encoding": "gzip, deflate",

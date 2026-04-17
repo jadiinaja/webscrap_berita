@@ -329,15 +329,8 @@ def _e(text: str) -> str:
 
 
 def render_app_header(api_ok: bool) -> None:
-    status_html = (
-        '<span class="live-badge"><span class="live-dot"></span>API Aktif</span>'
-        if api_ok
-        else '<span style="background:#FEF2F2;border:1px solid #FECACA;border-radius:20px;'
-             'padding:6px 14px;font-size:12px;font-weight:600;color:#DC2626;">'
-             '⚠️ API Key Tidak Ditemukan</span>'
-    )
     st.markdown(
-        f"""
+        """
         <div class="app-header">
           <div class="app-header-left">
             <div class="app-icon-wrap">📰</div>
@@ -346,7 +339,6 @@ def render_app_header(api_ok: bool) -> None:
               <p class="app-subtitle">BPS Kabupaten Lombok Tengah &nbsp;·&nbsp; Analisis PDRB 2026</p>
             </div>
           </div>
-          {status_html}
         </div>
         """,
         unsafe_allow_html=True,

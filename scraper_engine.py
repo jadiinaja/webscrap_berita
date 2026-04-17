@@ -133,13 +133,15 @@ TRIWULAN_CONFIG: Dict = {
     },
 }
 
-REGIONS: List[str] = ["Lombok Tengah", "Nusa Tenggara Barat"]
+REGIONS: List[str] = ["Nusa Tenggara Barat", "Lombok Barat", "Lombok Tengah", "Lombok Timur", "Lombok Utara", "Kabupaten Sumbawa Barat", "Kabupaten Sumbawa", "Dompu", "Kabupaten Bima", "Kota Mataram", "Kota Bima"]
 
 LOCAL_PORTALS: List[Dict] = [
-    {"name": "Suara NTB",    "search": "https://www.suarantb.com/?s={q}"},
-    {"name": "Lombok Post",  "search": "https://lombokpost.jawapos.com/?s={q}"},
-    {"name": "Radar Lombok", "search": "https://radarlombok.co.id/?s={q}"},
-    {"name": "Koran Lombok", "search": "https://www.koranlombok.id/?s={q}"},
+    {"name": "Inside Lombok", "search": "https://insidelombok.id/?s={q}"},
+    {"name": "Lombok Tengah Media", "search": "https://lomboktengahkab.go.id/pencarian?q={q}"}, # Portal Resmi Pemkab
+    {"name": "NTB Satu", "search": "https://ntbsatu.com/?s={q}"},
+    {"name": "Post Kota NTB", "search": "https://postkotantb.com/?s={q}"},
+    {"name": "Kanal NTB", "search": "https://kanalntb.com/?s={q}"},
+    {"name": "Talikanews", "search": "https://www.talikanews.com/?s={q}"}
 ]
 
 _UA = UserAgent()

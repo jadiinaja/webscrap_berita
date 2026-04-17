@@ -41,7 +41,7 @@ KBLI_COLORS: Dict[str, str] = {
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Dasbor Pantauan Berita Ekonomi",
+    page_title="BPS Intelligence Hub",
     page_icon="📰",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -324,8 +324,13 @@ inject_css()
 # UI COMPONENT BUILDERS
 # ══════════════════════════════════════════════════════════════════════════════
 def _e(text: str) -> str:
-    """HTML-escape user content to prevent XSS."""
     return _html.escape(str(text))
+
+
+def _safe_url(url: str) -> str:
+    """Return url only if scheme is http/https; otherwise '#' to block javascript: XSS."""
+    u = str(url).strip()
+    return u if re.match(r"^https?://", u, re.I) else "#"
 
 
 def render_app_header(api_ok: bool) -> None:
@@ -385,7 +390,7 @@ def render_news_card(row: Dict) -> str:
     snippet = _e(row.get("Fenomena", ""))
     date_s  = _e(row.get("Tanggal", "—"))
     source  = _e(row.get("Sumber", ""))
-    link    = _e(row.get("Link", "#"))
+    link    = _safe_url(row.get("Link", "#"))
     uraian  = _e(row.get("Uraian KBLI", ""))
 
     return (
@@ -397,7 +402,7 @@ def render_news_card(row: Dict) -> str:
         f'</div>'
         f'<p class="news-title">{title}</p>'
         f'<p class="news-snippet">{snippet}</p>'
-        f'<a href="{link}" target="_blank" class="news-link">Baca Selengkapnya →</a>'
+        f'<a href="{link}" target="_blank" rel="noopener noreferrer" class="news-link">Baca Selengkapnya →</a>'
         f'</div>'
     )
 
@@ -508,7 +513,8 @@ def render_ringkasan(df: pd.DataFrame, cfg: Dict) -> None:
     triwulan   = cfg.get("triwulan", "triwulan ini").split(" (")[0]
     mendukung  = int((df["Dampak Ekonomi"] == "🟢 Mendukung").sum())
     menghambat = int((df["Dampak Ekonomi"] == "🔴 Menghambat").sum())
-    top_komp   = df["Komponen PDRB"].mode()[0] if not df.empty else "—"
+    _mode      = df["Komponen PDRB"].mode()
+    top_komp   = _mode.iloc[0] if not _mode.empty else "—"
     comp_cfg   = PDRB_COMPONENTS.get(top_komp)
     top_label  = comp_cfg["label"] if comp_cfg else top_komp
 
@@ -567,11 +573,14 @@ with fc3:
         value=True,
         help="Tambah data dari Suara NTB, Lombok Post, Radar Lombok, Koran Lombok",
     )
-    kbli_cfg = KBLI_MAPPING[kbli_key]
-    tcfg     = TRIWULAN_CONFIG[triwulan_key]
+    kbli_cfg    = KBLI_MAPPING[kbli_key]
+    tcfg        = TRIWULAN_CONFIG[triwulan_key]
+    n_kw        = min(len(kbli_cfg["keywords"]), 5)
+    est_calls   = n_kw * num_results
     st.caption(
         f"**{tcfg['start'].strftime('%d %b')} – {tcfg['end'].strftime('%d %b %Y')}**  \n"
-        f"*{kbli_cfg['uraian']}*"
+        f"*{kbli_cfg['uraian']}*  \n"
+        f"Estimasi ~**{est_calls} Serper API calls**"
     )
     scrape_btn = st.button("🔍 Mulai Pencarian", type="primary", use_container_width=True)
 
@@ -581,6 +590,13 @@ st.markdown("</div>", unsafe_allow_html=True)
 if "df_result"    not in st.session_state: st.session_state.df_result    = pd.DataFrame()
 if "last_config"  not in st.session_state: st.session_state.last_config  = {}
 if "last_updated" not in st.session_state: st.session_state.last_updated = None
+
+if not st.session_state.df_result.empty:
+    if st.button("🗑️ Hapus Hasil", help="Bersihkan hasil pencarian saat ini"):
+        st.session_state.df_result    = pd.DataFrame()
+        st.session_state.last_config  = {}
+        st.session_state.last_updated = None
+        st.rerun()
 
 # ── Trigger Scrape ────────────────────────────────────────────────────────────
 if scrape_btn:

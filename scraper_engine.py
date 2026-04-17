@@ -489,7 +489,6 @@ def run_scrape(
                 continue
 
             tanggal_str = pub_date.strftime("%Y-%m-%d") if pub_date else "—"
-            kat, ur = classify_kbli(f"{judul} {snippet}")
             komponen, dampak, analisa = analyze_economic_impact(f"{judul} {snippet}")
 
             rows.append({
@@ -518,7 +517,6 @@ def run_scrape(
             if not link or link in seen_urls:
                 continue
             seen_urls.add(link)
-            kat, ur = classify_kbli(f"{item['Judul Berita']} {item['Fenomena']}")
             komponen, dampak, analisa = analyze_economic_impact(f"{item['Judul Berita']} {item['Fenomena']}")
             item["Kategori KBLI"]  = kbli_key
             item["Uraian KBLI"]    = uraian

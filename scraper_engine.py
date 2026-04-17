@@ -106,6 +106,55 @@ KBLI_MAPPING: Dict = {
     },
 }
 
+PDRB_COMPONENTS: Dict = {
+    "C":   {"label": "C — Konsumsi",               "keywords": ["harga", "pasar", "daya beli", "sembako", "retail", "belanja", "konsumsi", "pangan"]},
+    "I":   {"label": "I — Investasi",               "keywords": ["investasi", "pembangunan", "proyek", "modal", "konstruksi", "pabrik", "PMTB", "infrastruktur"]},
+    "G":   {"label": "G — Pengeluaran Pemerintah",  "keywords": ["APBD", "bansos", "dana desa", "kebijakan", "peresmian", "pemerintah", "anggaran", "subsidi"]},
+    "X-M": {"label": "X-M — Ekspor Neto",           "keywords": ["ekspor", "impor", "pengiriman luar negeri", "pelabuhan", "komoditas unggulan"]},
+}
+
+_MENDUKUNG_KW: List[str] = [
+    "meningkat", "naik", "tumbuh", "berkembang", "bertambah", "surplus",
+    "berhasil", "sukses", "optimis", "rekor", "positif", "unggulan",
+    "peningkatan", "pertumbuhan", "diresmikan", "ekspansi", "panen raya",
+    "wisatawan meningkat", "investasi masuk", "pembangunan selesai",
+]
+
+_MENGHAMBAT_KW: List[str] = [
+    "turun", "merosot", "gagal", "puso", "rugi", "macet", "banjir",
+    "kekeringan", "anjlok", "defisit", "lesu", "terhambat", "terhenti",
+    "tertunda", "konflik", "sengketa", "terbakar", "bencana", "krisis",
+    "inflasi tinggi", "harga naik", "kelangkaan", "pengangguran",
+]
+
+_ANALISA_MAP: Dict[str, Dict[str, str]] = {
+    "C": {
+        "🟢 Mendukung":  "Meningkatkan konsumsi rumah tangga dan daya beli masyarakat daerah.",
+        "🟡 Netral":     "Berpotensi mempengaruhi pola konsumsi masyarakat lokal.",
+        "🔴 Menghambat": "Tekanan pada daya beli masyarakat dapat menekan konsumsi agregat daerah.",
+    },
+    "I": {
+        "🟢 Mendukung":  "Mendorong pembentukan modal tetap bruto (PMTB) daerah.",
+        "🟡 Netral":     "Berpotensi mempengaruhi iklim investasi dan pembentukan modal.",
+        "🔴 Menghambat": "Dapat menghambat realisasi investasi dan pembentukan modal tetap.",
+    },
+    "G": {
+        "🟢 Mendukung":  "Realisasi belanja pemerintah mendorong komponen pengeluaran pemerintah (G) dalam PDRB.",
+        "🟡 Netral":     "Kebijakan pemerintah berpotensi memengaruhi komponen pengeluaran APBD.",
+        "🔴 Menghambat": "Dapat mengganggu efektivitas belanja pemerintah dan layanan publik.",
+    },
+    "X-M": {
+        "🟢 Mendukung":  "Memperkuat surplus neraca perdagangan dan ekspor neto daerah.",
+        "🟡 Netral":     "Berpotensi mempengaruhi volume ekspor-impor komoditas daerah.",
+        "🔴 Menghambat": "Dapat menekan ekspor neto dan memperlemah neraca perdagangan daerah.",
+    },
+    "Lainnya": {
+        "🟢 Mendukung":  "Berdampak positif pada aktivitas ekonomi daerah secara umum.",
+        "🟡 Netral":     "Memerlukan kajian lebih lanjut terhadap dampak ekonomi daerah.",
+        "🔴 Menghambat": "Berpotensi memberikan tekanan negatif pada perekonomian daerah.",
+    },
+}
+
 TRIWULAN_CONFIG: Dict = {
     "T1 2026 (Jan–Mar)": {
         "start": date(2026, 1, 1),
@@ -233,6 +282,30 @@ def classify_kbli(text: str) -> Tuple[str, str]:
     return "Lainnya", "Fenomena ekonomi lainnya"
 
 
+# ── ECONOMIC IMPACT ANALYZER ─────────────────────────────────────────────────
+def analyze_economic_impact(text: str) -> Tuple[str, str, str]:
+    """Return (komponen_pdrb, dampak_ekonomi, analisa_teori) via keyword matching."""
+    t = text.lower()
+
+    komponen = "Lainnya"
+    for comp, cfg in PDRB_COMPONENTS.items():
+        if any(kw.lower() in t for kw in cfg["keywords"]):
+            komponen = comp
+            break
+
+    pos = sum(1 for kw in _MENDUKUNG_KW if kw in t)
+    neg = sum(1 for kw in _MENGHAMBAT_KW if kw in t)
+
+    if pos > neg:
+        dampak = "🟢 Mendukung"
+    elif neg > pos:
+        dampak = "🔴 Menghambat"
+    else:
+        dampak = "🟡 Netral"
+
+    return komponen, dampak, _ANALISA_MAP[komponen][dampak]
+
+
 # ── SERPER API ────────────────────────────────────────────────────────────────
 def search_serper(api_key: str, query: str, tbs: str, num: int = 10) -> List[Dict]:
     payload = {"q": query, "num": num, "gl": "id", "hl": "id", "tbs": tbs}
@@ -328,13 +401,16 @@ def local_portal_scraper(
                     snippet = p.get_text(strip=True)[:300] if p else ""
 
                 results.append({
-                    "Judul Berita":  title,
-                    "Tanggal":       pub_date.strftime("%Y-%m-%d"),
-                    "Sumber":        portal["name"],
-                    "Kategori KBLI": "",
-                    "Uraian KBLI":   "",
-                    "Fenomena":      snippet,
-                    "Link":          link,
+                    "Judul Berita":   title,
+                    "Tanggal":        pub_date.strftime("%Y-%m-%d"),
+                    "Sumber":         portal["name"],
+                    "Kategori KBLI":  "",
+                    "Uraian KBLI":    "",
+                    "Fenomena":       snippet,
+                    "Komponen PDRB":  "",
+                    "Dampak Ekonomi": "",
+                    "Analisa Teori":  "",
+                    "Link":           link,
                 })
         except Exception:
             continue
@@ -407,15 +483,19 @@ def run_scrape(
 
             tanggal_str = pub_date.strftime("%Y-%m-%d") if pub_date else "—"
             kat, ur = classify_kbli(f"{judul} {snippet}")
+            komponen, dampak, analisa = analyze_economic_impact(f"{judul} {snippet}")
 
             rows.append({
-                "Judul Berita":  judul,
-                "Tanggal":       tanggal_str,
-                "Sumber":        source,
-                "Kategori KBLI": kbli_key,
-                "Uraian KBLI":   uraian,
-                "Fenomena":      snippet,
-                "Link":          link,
+                "Judul Berita":   judul,
+                "Tanggal":        tanggal_str,
+                "Sumber":         source,
+                "Kategori KBLI":  kbli_key,
+                "Uraian KBLI":    uraian,
+                "Fenomena":       snippet,
+                "Komponen PDRB":  komponen,
+                "Dampak Ekonomi": dampak,
+                "Analisa Teori":  analisa,
+                "Link":           link,
             })
 
         time.sleep(0.4)
@@ -432,8 +512,12 @@ def run_scrape(
                 continue
             seen_urls.add(link)
             kat, ur = classify_kbli(f"{item['Judul Berita']} {item['Fenomena']}")
-            item["Kategori KBLI"] = kbli_key
-            item["Uraian KBLI"]   = uraian
+            komponen, dampak, analisa = analyze_economic_impact(f"{item['Judul Berita']} {item['Fenomena']}")
+            item["Kategori KBLI"]  = kbli_key
+            item["Uraian KBLI"]    = uraian
+            item["Komponen PDRB"]  = komponen
+            item["Dampak Ekonomi"] = dampak
+            item["Analisa Teori"]  = analisa
             rows.append(item)
 
     _notify(total, f"Selesai — {len(rows)} berita ditemukan sebelum dedup.")

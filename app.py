@@ -13,7 +13,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from scraper_engine import KBLI_MAPPING, REGIONS, TRIWULAN_CONFIG, run_scrape
+from scraper_engine import KBLI_MAPPING, PDRB_COMPONENTS, REGIONS, TRIWULAN_CONFIG, run_scrape
 
 # ── API KEY ───────────────────────────────────────────────────────────────────
 try:
@@ -452,6 +452,87 @@ def donut_chart(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def render_sentiment_cards(df: pd.DataFrame) -> None:
+    total     = max(len(df), 1)
+    mendukung  = int((df["Dampak Ekonomi"] == "🟢 Mendukung").sum())
+    netral     = int((df["Dampak Ekonomi"] == "🟡 Netral").sum())
+    menghambat = int((df["Dampak Ekonomi"] == "🔴 Menghambat").sum())
+    cards = [
+        ("🟢", "Mendukung",  mendukung,  f"{mendukung /total*100:.0f}% berita", "#D1FAE5", "#064E3B", "#059669"),
+        ("🟡", "Netral",     netral,     f"{netral    /total*100:.0f}% berita", "#FEF9C3", "#713F12", "#CA8A04"),
+        ("🔴", "Menghambat", menghambat, f"{menghambat/total*100:.0f}% berita", "#FEE2E2", "#7F1D1D", "#DC2626"),
+    ]
+    cols = st.columns(3)
+    for col, (icon, label, value, sub, bg, text, accent) in zip(cols, cards):
+        col.markdown(
+            f'<div class="kpi-card" style="--kpi-color:{accent};background:{bg};border-color:{accent}33;">'
+            f'<span class="kpi-icon">{icon}</span>'
+            f'<div class="kpi-label" style="color:{text}99;">{label}</div>'
+            f'<div class="kpi-value" style="color:{text};">{value}</div>'
+            f'<div class="kpi-sub">{sub}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def component_pie(df: pd.DataFrame) -> go.Figure:
+    counts  = df["Komponen PDRB"].value_counts()
+    labels: List[str] = []
+    values: List[int] = []
+    palette = ["#2563EB", "#7C3AED", "#059669", "#D97706", "#6B7280"]
+    order   = list(PDRB_COMPONENTS.keys()) + ["Lainnya"]
+    for comp in order:
+        if comp in counts.index:
+            cfg = PDRB_COMPONENTS.get(comp)
+            labels.append(cfg["label"] if cfg else comp)
+            values.append(int(counts[comp]))
+    fig = go.Figure(data=[go.Pie(
+        labels=labels, values=values, hole=0.60,
+        marker=dict(colors=palette[:len(labels)], line=dict(color="#F3F4F6", width=2)),
+        textinfo="label+percent",
+        textfont=dict(size=11, family="Inter, sans-serif"),
+        hovertemplate="<b>%{label}</b><br>%{value} berita (%{percent})<extra></extra>",
+    )])
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(t=0, b=0, l=0, r=0), height=260,
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif"),
+    )
+    return fig
+
+
+def render_ringkasan(df: pd.DataFrame, cfg: Dict) -> None:
+    total      = len(df)
+    region     = cfg.get("region", "wilayah ini")
+    triwulan   = cfg.get("triwulan", "triwulan ini").split(" (")[0]
+    mendukung  = int((df["Dampak Ekonomi"] == "🟢 Mendukung").sum())
+    menghambat = int((df["Dampak Ekonomi"] == "🔴 Menghambat").sum())
+    top_komp   = df["Komponen PDRB"].mode()[0] if not df.empty else "—"
+    comp_cfg   = PDRB_COMPONENTS.get(top_komp)
+    top_label  = comp_cfg["label"] if comp_cfg else top_komp
+
+    if mendukung > menghambat:
+        tren = "didominasi sinyal positif yang berpotensi mendorong pertumbuhan PDRB"
+    elif menghambat > mendukung:
+        tren = "menunjukkan tekanan ekonomi yang perlu diwaspadai dalam proyeksi PDRB"
+    else:
+        tren = "menunjukkan kondisi ekonomi yang relatif berimbang"
+
+    st.markdown(
+        f'<div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;padding:18px 22px;margin-top:16px;">'
+        f'<div style="font-size:11px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">📋 Ringkasan Analis</div>'
+        f'<p style="font-size:13.5px;color:#1E3A5F;line-height:1.7;margin:0;">'
+        f'Berdasarkan <strong>{total} berita</strong>, tren ekonomi di <strong>{_e(region)}</strong> '
+        f'pada <strong>{_e(triwulan)}</strong> {tren}. '
+        f'Komponen PDRB yang paling banyak teridentifikasi adalah <strong>{_e(top_label)}</strong>, '
+        f'dengan <strong>{mendukung} berita mendukung</strong> dan <strong>{menghambat} berita mengindikasikan hambatan</strong>.'
+        f'</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def to_excel_bytes(df: pd.DataFrame) -> bytes:
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as w:
@@ -553,6 +634,16 @@ if not df.empty:
     # KPI Cards
     st.markdown("<div style='margin:4px 0 16px'></div>", unsafe_allow_html=True)
     render_kpi_cards(df, cfg)
+
+    # Sentiment Cards
+    has_analysis = "Dampak Ekonomi" in df.columns and df["Dampak Ekonomi"].notna().any()
+    if has_analysis:
+        st.markdown(
+            '<p style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;'
+            'letter-spacing:0.12em;margin:18px 0 10px 2px;">📡 Analisis Dampak Ekonomi</p>',
+            unsafe_allow_html=True,
+        )
+        render_sentiment_cards(df)
     st.markdown("<div style='margin-bottom:4px'></div>", unsafe_allow_html=True)
 
     # Tabs
@@ -590,13 +681,16 @@ if not df.empty:
         st.dataframe(
             dv,
             column_config={
-                "Link":          st.column_config.LinkColumn("Tautan",             display_text="🔗 Buka"),
-                "Judul Berita":  st.column_config.TextColumn("Judul Berita",       width="large"),
-                "Uraian KBLI":   st.column_config.TextColumn("Uraian KBLI",        width="large"),
-                "Fenomena":      st.column_config.TextColumn("Cuplikan Berita",    width="large"),
-                "Tanggal":       st.column_config.TextColumn("Tanggal",            width="small"),
-                "Sumber":        st.column_config.TextColumn("Sumber",             width="small"),
-                "Kategori KBLI": st.column_config.TextColumn("Kategori",           width="medium"),
+                "Link":           st.column_config.LinkColumn("Tautan",          display_text="🔗 Buka"),
+                "Judul Berita":   st.column_config.TextColumn("Judul Berita",    width="large"),
+                "Uraian KBLI":    st.column_config.TextColumn("Uraian KBLI",     width="large"),
+                "Fenomena":       st.column_config.TextColumn("Cuplikan Berita", width="large"),
+                "Analisa Teori":  st.column_config.TextColumn("Analisa Teori",   width="large"),
+                "Dampak Ekonomi": st.column_config.TextColumn("Dampak Ekonomi",  width="small"),
+                "Komponen PDRB":  st.column_config.TextColumn("Komponen PDRB",   width="small"),
+                "Tanggal":        st.column_config.TextColumn("Tanggal",         width="small"),
+                "Sumber":         st.column_config.TextColumn("Sumber",          width="small"),
+                "Kategori KBLI":  st.column_config.TextColumn("Kategori",        width="medium"),
             },
             use_container_width=True,
             height=480,
@@ -639,12 +733,22 @@ if not df.empty:
             st.markdown("**Distribusi Sumber Berita**")
             st.plotly_chart(donut_chart(df), use_container_width=True)
         with v2:
-            st.markdown("**Tren Publikasi per Tanggal**")
-            dated = df[df["Tanggal"] != "—"]["Tanggal"].value_counts().sort_index()
-            if not dated.empty:
-                st.bar_chart(dated, height=260)
+            if has_analysis and "Komponen PDRB" in df.columns:
+                st.markdown("**Komponen PDRB Teridentifikasi**")
+                st.plotly_chart(component_pie(df), use_container_width=True)
             else:
-                st.info("Tidak ada data tanggal yang bisa divisualisasikan.")
+                st.markdown("**Tren Publikasi per Tanggal**")
+                dated = df[df["Tanggal"] != "—"]["Tanggal"].value_counts().sort_index()
+                if not dated.empty:
+                    st.bar_chart(dated, height=260)
+                else:
+                    st.info("Tidak ada data tanggal yang bisa divisualisasikan.")
+
+        if has_analysis:
+            dated2 = df[df["Tanggal"] != "—"]["Tanggal"].value_counts().sort_index()
+            if not dated2.empty:
+                st.markdown("**Tren Publikasi per Tanggal**")
+                st.bar_chart(dated2, height=220)
 
         uraian_val = df["Uraian KBLI"].iloc[0] if not df.empty else "—"
         st.markdown(
@@ -679,6 +783,18 @@ if not df.empty:
             file_name=f"{filename}.csv",
             mime="text/csv",
             use_container_width=True,
+        )
+
+    # ── Ringkasan Analis & Disclaimer ─────────────────────────────────────────
+    if has_analysis:
+        render_ringkasan(df, cfg)
+        st.markdown(
+            '<p style="margin-top:10px;font-size:11.5px;color:#9CA3AF;font-style:italic;text-align:center;">'
+            '⚠️ Analisis ini bersifat otomatis berbasis pencocokan kata kunci (rule-based AI). '
+            'Hasil ini merupakan bahan pendukung awal dan perlu divalidasi oleh analis BPS '
+            'sebelum digunakan sebagai dasar estimasi PDRB resmi.'
+            '</p>',
+            unsafe_allow_html=True,
         )
 
 elif scrape_btn:

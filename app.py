@@ -539,6 +539,24 @@ def render_ringkasan(df: pd.DataFrame, cfg: Dict) -> None:
     )
 
 
+def trend_bar_chart(series: pd.Series, height: int = 260) -> go.Figure:
+    fig = go.Figure(data=[go.Bar(
+        x=series.index.tolist(),
+        y=series.values.tolist(),
+        marker_color="#2563EB",
+        marker_line_width=0,
+        hovertemplate="%{x}<br>%{y} berita<extra></extra>",
+    )])
+    fig.update_layout(
+        margin=dict(t=8, b=0, l=0, r=0), height=height,
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif", size=11),
+        xaxis=dict(showgrid=False, tickangle=-45),
+        yaxis=dict(showgrid=True, gridcolor="#F3F4F6", zeroline=False),
+    )
+    return fig
+
+
 def to_excel_bytes(df: pd.DataFrame) -> bytes:
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as w:
@@ -756,7 +774,7 @@ if not df.empty:
                 st.markdown("**Tren Publikasi per Tanggal**")
                 dated = df[df["Tanggal"] != "—"]["Tanggal"].value_counts().sort_index()
                 if not dated.empty:
-                    st.bar_chart(dated, height=260)
+                    st.plotly_chart(trend_bar_chart(dated, height=260), use_container_width=True)
                 else:
                     st.info("Tidak ada data tanggal yang bisa divisualisasikan.")
 
@@ -764,7 +782,7 @@ if not df.empty:
             dated2 = df[df["Tanggal"] != "—"]["Tanggal"].value_counts().sort_index()
             if not dated2.empty:
                 st.markdown("**Tren Publikasi per Tanggal**")
-                st.bar_chart(dated2, height=220)
+                st.plotly_chart(trend_bar_chart(dated2, height=220), use_container_width=True)
 
         uraian_val = df["Uraian KBLI"].iloc[0] if not df.empty else "—"
         st.markdown(

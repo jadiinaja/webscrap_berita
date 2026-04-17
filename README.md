@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.35%2B-FF4B4B?logo=streamlit&logoColor=white)
-![License](https://img.shields.io/badge/Lisensi-Internal%20BPS-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 Aplikasi dasbor berbasis Streamlit untuk mengambil, mengklasifikasikan, dan menganalisis berita ekonomi sebagai bahan pendukung penyusunan **PDRB Kabupaten/Kota di Provinsi Nusa Tenggara Barat** tahun **2026**.
 

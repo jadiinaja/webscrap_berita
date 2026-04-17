@@ -605,9 +605,12 @@ with fc3:
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ── Session State ─────────────────────────────────────────────────────────────
-if "df_result"    not in st.session_state: st.session_state.df_result    = pd.DataFrame()
-if "last_config"  not in st.session_state: st.session_state.last_config  = {}
-if "last_updated" not in st.session_state: st.session_state.last_updated = None
+if "df_result"      not in st.session_state: st.session_state.df_result      = pd.DataFrame()
+if "last_config"    not in st.session_state: st.session_state.last_config    = {}
+if "last_updated"   not in st.session_state: st.session_state.last_updated   = None
+if "last_scrape_ts" not in st.session_state: st.session_state.last_scrape_ts = 0.0
+
+_COOLDOWN_SEC = 30
 
 if not st.session_state.df_result.empty:
     if st.button("🗑️ Hapus Hasil", help="Bersihkan hasil pencarian saat ini"):
@@ -618,12 +621,20 @@ if not st.session_state.df_result.empty:
 
 # ── Trigger Scrape ────────────────────────────────────────────────────────────
 if scrape_btn:
-    if not SERPER_API_KEY:
+    _elapsed = datetime.now().timestamp() - st.session_state.last_scrape_ts
+    _remaining = int(_COOLDOWN_SEC - _elapsed)
+    if _remaining > 0:
+        st.warning(
+            f"⏳ Tunggu **{_remaining} detik** sebelum pencarian berikutnya "
+            f"untuk menjaga kuota Serper API."
+        )
+    elif not SERPER_API_KEY:
         st.error(
             "❌ `SERPER_API_KEY` tidak ditemukan.  \n"
             "Tambahkan di `.streamlit/secrets.toml` atau Streamlit Cloud → Settings → Secrets."
         )
     else:
+        st.session_state.last_scrape_ts = datetime.now().timestamp()
         st.session_state.last_config = {
             "region":   region,
             "triwulan": triwulan_key,

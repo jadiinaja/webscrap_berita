@@ -261,7 +261,19 @@ def _norm(t: str) -> str:
 
 
 def _similar(a: str, b: str, threshold: float = 0.82) -> bool:
-    return difflib.SequenceMatcher(None, a, b).ratio() >= threshold
+    if not a or not b:
+        return a == b
+    # O(1) length ratio guard — strings too different in length can't be similar
+    la, lb = len(a), len(b)
+    if min(la, lb) / max(la, lb) < threshold:
+        return False
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    # Cascade: real_quick_ratio O(1) → quick_ratio O(n) → ratio O(n²)
+    return (
+        sm.real_quick_ratio() >= threshold
+        and sm.quick_ratio() >= threshold
+        and sm.ratio() >= threshold
+    )
 
 
 def deduplicate(rows: List[Dict]) -> List[Dict]:
@@ -360,12 +372,16 @@ def local_portal_scraper(
     region: str,
     start_dt: date,
     end_dt: date,
+    on_portal_progress: Optional[Callable] = None,
 ) -> List[Dict]:
     """Search NTB local portals via BeautifulSoup. Strict 2026 filter enforced."""
     query = f"{region} {keyword}"
     results: List[Dict] = []
+    total_portals = len(LOCAL_PORTALS)
 
-    for portal in LOCAL_PORTALS:
+    for idx, portal in enumerate(LOCAL_PORTALS):
+        if on_portal_progress:
+            on_portal_progress(idx + 1, total_portals, portal["name"])
         url  = portal["search"].format(q=quote_plus(query))
         base = portal["search"].split("/?")[0]
         try:
@@ -508,9 +524,14 @@ def run_scrape(
 
     # ── Local portal scraper ──────────────────────────────────────────────────
     if use_local:
-        _notify(len(keywords), "Scraping portal berita lokal NTB...")
+        _notify(len(keywords), "Memulai scraping portal berita lokal NTB...")
+
+        def _portal_cb(i: int, total_p: int, name: str) -> None:
+            _notify(len(keywords), f"Portal lokal [{i}/{total_p}]: **{name}**")
+
         local_items = local_portal_scraper(
-            kbli_cfg["keywords"][0], region, start_dt, end_dt
+            kbli_cfg["keywords"][0], region, start_dt, end_dt,
+            on_portal_progress=_portal_cb,
         )
         for item in local_items:
             link = item.get("Link", "")

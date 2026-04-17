@@ -141,7 +141,20 @@ LOCAL_PORTALS: List[Dict] = [
     {"name": "NTB Satu", "search": "https://ntbsatu.com/?s={q}"},
     {"name": "Post Kota NTB", "search": "https://postkotantb.com/?s={q}"},
     {"name": "Kanal NTB", "search": "https://kanalntb.com/?s={q}"},
-    {"name": "Talikanews", "search": "https://www.talikanews.com/?s={q}"}
+    {"name": "Talikanews", "search": "https://www.talikanews.com/?s={q}"},
+
+    # SUMBAWA & SUMBAWA BARAT
+    {"name": "Sumbawa News", "search": "https://sumbawanews.com/?s={q}"},
+    {"name": "Gaung NTB", "search": "https://gaungntb.com/?s={q}"},
+    {"name": "Samawa Rea", "search": "https://samawarearea.com/?s={q}"},
+    {"name": "Kabar Sumbawa", "search": "https://kabarsumbawa.com/?s={q}"},
+
+    # BIMA & DOMPU
+    {"name": "Warta NTB", "search": "https://wartantb.com/?s={q}"},
+    {"name": "Kabar Bima", "search": "https://kabarbima.com/?s={q}"},
+    {"name": "Metromini Bima", "search": "https://metromini.info/?s={q}"},
+    {"name": "Kahaba Bima", "search": "https://kahaba.net/?s={q}"},
+    {"name": "Lakeynews", "search": "https://lakeynews.com/?s={q}"} # Kuat di area Dompu
 ]
 
 _UA = UserAgent()

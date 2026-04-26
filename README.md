@@ -1,4 +1,4 @@
-# 📰 Dasbor Pantauan Berita Ekonomi — PDRB NTB 2026
+# 📰 Dashboard Pantauan Berita Ekonomi — PDRB NTB 2026
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.35%2B-FF4B4B?logo=streamlit&logoColor=white)

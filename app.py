@@ -55,8 +55,8 @@ def inject_css() -> None:
         """
         <style>
         /* ── Font ─────────────────────────────────────────────────── */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        html, body, [class*="css"] {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+        html, body, [class*="css"], * {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
@@ -69,11 +69,32 @@ def inject_css() -> None:
         section[data-testid="stSidebar"]    { display: none !important; }
         [data-testid="collapsedControl"]    { display: none !important; }
 
-        /* ── Background & layout ───────────────────────────────────── */
-        .stApp { background-color: #F3F4F6; }
+        /* ── Animated dark mesh background ─────────────────────────── */
+        .stApp {
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 60% 30%, rgba(16,185,129,0.07) 0%, transparent 50%),
+                linear-gradient(160deg, #060918 0%, #0d1229 45%, #0a0f24 100%);
+            min-height: 100vh;
+        }
+        [data-testid="stAppViewContainer"] {
+            background: transparent !important;
+        }
+        [data-testid="stHeader"] {
+            background: transparent !important;
+        }
         .block-container {
             padding: 1.75rem 2.25rem 5rem 2.25rem;
             max-width: 1320px;
+        }
+
+        /* ── Glass mixin base ───────────────────────────────────────── */
+        .glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.10);
         }
 
         /* ── App header card ───────────────────────────────────────── */
@@ -81,116 +102,167 @@ def inject_css() -> None:
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #FFFFFF;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 20px;
             padding: 22px 28px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            border-left: 5px solid #2563EB;
+            box-shadow:
+                0 0 0 1px rgba(59,130,246,0.15) inset,
+                0 8px 32px rgba(0,0,0,0.35),
+                0 0 60px rgba(59,130,246,0.06);
+            position: relative; overflow: hidden;
         }
-        .app-header-left { display: flex; align-items: center; gap: 18px; }
+        .app-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .app-header-left { display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
         .app-icon-wrap {
             font-size: 34px;
-            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.25) 0%, rgba(139,92,246,0.25) 100%);
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 16px;
             width: 62px; height: 62px;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(59,130,246,0.2);
         }
         .app-title {
             font-size: 21px; font-weight: 800;
-            color: #111827; margin: 0; line-height: 1.2;
+            color: #F1F5F9; margin: 0; line-height: 1.2;
+            letter-spacing: -0.02em;
         }
         .app-subtitle {
-            font-size: 13px; color: #6B7280;
+            font-size: 13px; color: rgba(241,245,249,0.5);
             margin: 4px 0 0; font-weight: 400;
         }
         .live-badge {
             display: inline-flex; align-items: center; gap: 7px;
-            background: #F0FDF4; border: 1px solid #BBF7D0;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.30);
             border-radius: 20px; padding: 6px 14px;
-            font-size: 12px; font-weight: 600; color: #059669;
+            font-size: 12px; font-weight: 600; color: #34D399;
+            box-shadow: 0 0 16px rgba(16,185,129,0.15);
         }
         .live-dot {
-            width: 7px; height: 7px; background: #059669;
+            width: 7px; height: 7px; background: #34D399;
             border-radius: 50%; animation: pulse 2s infinite;
+            box-shadow: 0 0 8px rgba(52,211,153,0.8);
         }
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.35; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.8); }
         }
 
         /* ── Filter section ────────────────────────────────────────── */
         .filter-wrap {
-            background: #FFFFFF;
-            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 16px;
             padding: 22px 24px 18px 24px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07);
-            border: 1px solid #E5E7EB;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         .section-eyebrow {
-            font-size: 10px; font-weight: 700; color: #9CA3AF;
-            text-transform: uppercase; letter-spacing: 0.12em;
+            font-size: 10px; font-weight: 700;
+            color: rgba(241,245,249,0.45);
+            text-transform: uppercase; letter-spacing: 0.14em;
             margin-bottom: 14px;
         }
 
         /* ── KPI cards ─────────────────────────────────────────────── */
-        .kpi-grid { display: flex; gap: 16px; margin-bottom: 20px; }
         .kpi-card {
-            background: #FFFFFF;
-            border-radius: 12px;
-            padding: 20px 22px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 18px;
+            padding: 22px 24px;
             flex: 1;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            border: 1px solid #E5E7EB;
             position: relative; overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 30px rgba(59,130,246,0.18);
         }
         .kpi-card::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: var(--kpi-color, #2563EB);
-            border-radius: 12px 12px 0 0;
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--kpi-color, #3B82F6) 50%, transparent 100%);
+            border-radius: 18px 18px 0 0;
         }
-        .kpi-icon  { font-size: 26px; margin-bottom: 10px; display: block; }
+        .kpi-card::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at top left, rgba(59,130,246,0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .kpi-icon  { font-size: 28px; margin-bottom: 10px; display: block; position: relative; z-index: 1; }
         .kpi-label {
-            font-size: 10px; font-weight: 700; color: #9CA3AF;
-            text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 5px;
+            font-size: 10px; font-weight: 700;
+            color: rgba(241,245,249,0.45);
+            text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 5px;
+            position: relative; z-index: 1;
         }
-        .kpi-value { font-size: 26px; font-weight: 800; color: #111827; line-height: 1.1; }
-        .kpi-sub   { font-size: 11px; color: #9CA3AF; margin-top: 3px; }
+        .kpi-value {
+            font-size: 28px; font-weight: 800; color: #F1F5F9;
+            line-height: 1.1; position: relative; z-index: 1;
+            letter-spacing: -0.02em;
+        }
+        .kpi-sub   { font-size: 11px; color: rgba(241,245,249,0.4); margin-top: 4px; position: relative; z-index: 1; }
 
         /* ── Thin progress bar ─────────────────────────────────────── */
         .prog-wrap {
-            background: #FFFFFF;
-            border-radius: 10px;
-            padding: 16px 20px;
-            border: 1px solid #E5E7EB;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 14px;
+            padding: 18px 22px;
             margin-bottom: 18px;
-            box-shadow: 0 2px 4px rgb(0 0 0 / 0.04);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         }
         .prog-header {
-            display: flex; justify-content: space-between; margin-bottom: 8px;
+            display: flex; justify-content: space-between; margin-bottom: 10px;
         }
-        .prog-msg  { font-size: 13px; color: #374151; }
-        .prog-pct  { font-size: 13px; font-weight: 700; color: #2563EB; }
+        .prog-msg  { font-size: 13px; color: rgba(241,245,249,0.75); }
+        .prog-pct  { font-size: 13px; font-weight: 700; color: #60A5FA; }
         .prog-track {
-            background: #F3F4F6; border-radius: 9999px; height: 4px; overflow: hidden;
+            background: rgba(255,255,255,0.08);
+            border-radius: 9999px; height: 5px; overflow: hidden;
         }
         .prog-fill {
             height: 100%; border-radius: 9999px;
-            background: linear-gradient(90deg, #2563EB 0%, #7C3AED 100%);
+            background: linear-gradient(90deg, #3B82F6 0%, #8B5CF6 50%, #06B6D4 100%);
+            box-shadow: 0 0 12px rgba(59,130,246,0.6);
             transition: width 0.4s ease;
         }
 
         /* ── News feed cards ───────────────────────────────────────── */
         .news-card {
-            background: #FFFFFF;
-            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 16px;
             padding: 20px 22px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
-            border: 1px solid #E5E7EB;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+        .news-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(59,130,246,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 20px rgba(59,130,246,0.08);
         }
         .news-meta {
             display: flex; align-items: center;
@@ -201,116 +273,171 @@ def inject_css() -> None:
             padding: 3px 10px; border-radius: 20px;
         }
         .news-date, .news-src {
-            font-size: 12px; color: #9CA3AF;
+            font-size: 12px; color: rgba(241,245,249,0.4);
         }
-        .news-src { font-weight: 500; color: #6B7280; }
+        .news-src { font-weight: 500; color: rgba(241,245,249,0.5); }
         .news-title {
-            font-size: 15px; font-weight: 700; color: #111827;
+            font-size: 15px; font-weight: 700; color: #F1F5F9;
             margin: 0 0 7px; line-height: 1.5;
         }
         .news-snippet {
-            font-size: 13px; color: #6B7280; line-height: 1.65;
+            font-size: 13px; color: rgba(241,245,249,0.55); line-height: 1.7;
             margin-bottom: 13px;
         }
         .news-link {
-            font-size: 13px; font-weight: 600; color: #2563EB;
+            font-size: 13px; font-weight: 600; color: #60A5FA;
             text-decoration: none;
         }
-        .news-link:hover { text-decoration: underline; }
-        .news-divider { height: 1px; background: #F3F4F6; margin: 0 0 12px; }
+        .news-link:hover { color: #93C5FD; text-decoration: underline; }
+        .news-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0 0 12px; }
 
         /* ── Empty state ───────────────────────────────────────────── */
         .empty-state {
-            background: #FFFFFF;
-            border-radius: 16px;
-            border: 2px dashed #E5E7EB;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 20px;
             padding: 72px 40px;
             text-align: center;
         }
-        .empty-icon  { font-size: 60px; margin-bottom: 18px; }
-        .empty-title { font-size: 20px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+        .empty-icon  { font-size: 60px; margin-bottom: 18px; filter: drop-shadow(0 0 12px rgba(59,130,246,0.3)); }
+        .empty-title { font-size: 20px; font-weight: 700; color: #F1F5F9; margin-bottom: 8px; }
         .empty-desc  {
-            font-size: 14px; color: #9CA3AF; max-width: 360px;
+            font-size: 14px; color: rgba(241,245,249,0.5); max-width: 360px;
             margin: 0 auto 22px; line-height: 1.65;
         }
         .empty-cta {
             display: inline-flex; align-items: center; gap: 7px;
-            background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;
-            border-radius: 8px; padding: 9px 18px;
+            background: rgba(59,130,246,0.12);
+            color: #60A5FA;
+            border: 1px solid rgba(59,130,246,0.30);
+            border-radius: 10px; padding: 10px 20px;
             font-size: 13px; font-weight: 600;
+            box-shadow: 0 0 20px rgba(59,130,246,0.12);
         }
 
-        /* ── Buttons ───────────────────────────────────────────────── */
+        /* ── Primary Button ────────────────────────────────────────── */
         div[data-testid="stButton"] > button[kind="primary"] {
-            background: #2563EB !important;
-            border: none !important; border-radius: 10px !important;
+            background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%) !important;
+            border: 1px solid rgba(59,130,246,0.4) !important;
+            border-radius: 12px !important;
             font-weight: 600 !important; font-size: 14px !important;
             color: white !important; width: 100% !important;
-            padding: 0.6rem 1.2rem !important;
-            box-shadow: 0 4px 6px -1px rgb(37 99 235 / 0.35) !important;
-            transition: all 0.15s !important; letter-spacing: 0.01em !important;
+            padding: 0.65rem 1.2rem !important;
+            box-shadow: 0 4px 15px rgba(37,99,235,0.4), 0 0 30px rgba(79,70,229,0.15) !important;
+            transition: all 0.2s ease !important;
+            letter-spacing: 0.01em !important;
         }
         div[data-testid="stButton"] > button[kind="primary"]:hover {
-            background: #1D4ED8 !important;
-            box-shadow: 0 8px 16px -3px rgb(37 99 235 / 0.45) !important;
-            transform: translateY(-1px) !important;
+            background: linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%) !important;
+            box-shadow: 0 8px 25px rgba(37,99,235,0.5), 0 0 40px rgba(79,70,229,0.2) !important;
+            transform: translateY(-2px) !important;
         }
-        .stDownloadButton > button {
-            border-radius: 8px !important; font-weight: 500 !important;
-            border: 1px solid #D1D5DB !important;
-            background: #FFFFFF !important; color: #374151 !important;
+        div[data-testid="stButton"] > button[kind="secondary"] {
+            background: rgba(255,255,255,0.06) !important;
+            border: 1px solid rgba(255,255,255,0.15) !important;
+            border-radius: 10px !important;
+            color: rgba(241,245,249,0.8) !important;
+            font-weight: 500 !important;
             transition: all 0.15s !important;
         }
+        div[data-testid="stButton"] > button[kind="secondary"]:hover {
+            background: rgba(255,255,255,0.10) !important;
+            border-color: rgba(59,130,246,0.35) !important;
+            color: #60A5FA !important;
+        }
+        .stDownloadButton > button {
+            border-radius: 10px !important; font-weight: 500 !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            background: rgba(255,255,255,0.05) !important;
+            color: rgba(241,245,249,0.8) !important;
+            transition: all 0.15s !important;
+            backdrop-filter: blur(10px) !important;
+        }
         .stDownloadButton > button:hover {
-            border-color: #2563EB !important;
-            color: #2563EB !important; background: #EFF6FF !important;
+            border-color: rgba(59,130,246,0.4) !important;
+            color: #60A5FA !important;
+            background: rgba(59,130,246,0.08) !important;
+            box-shadow: 0 0 20px rgba(59,130,246,0.15) !important;
         }
 
         /* ── Tabs ──────────────────────────────────────────────────── */
         .stTabs [data-baseweb="tab-list"] {
-            background: #FFFFFF; border-radius: 10px; padding: 4px;
-            border: 1px solid #E5E7EB; gap: 4px; display: inline-flex;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            border-radius: 12px; padding: 4px;
+            border: 1px solid rgba(255,255,255,0.09);
+            gap: 4px; display: inline-flex;
         }
         .stTabs [data-baseweb="tab"] {
-            background: transparent !important; border-radius: 8px !important;
+            background: transparent !important; border-radius: 9px !important;
             font-weight: 500 !important; font-size: 13px !important;
-            color: #6B7280 !important; border: none !important;
+            color: rgba(241,245,249,0.5) !important; border: none !important;
             padding: 7px 18px !important; transition: all 0.15s !important;
         }
         .stTabs [aria-selected="true"] {
-            background: #EFF6FF !important;
-            color: #2563EB !important; font-weight: 600 !important;
+            background: rgba(59,130,246,0.18) !important;
+            color: #93C5FD !important; font-weight: 600 !important;
+            box-shadow: 0 0 16px rgba(59,130,246,0.2) !important;
         }
 
         /* ── Select / inputs ───────────────────────────────────────── */
         div[data-baseweb="select"] > div {
-            border-radius: 8px !important; border-color: #E5E7EB !important;
-            background: #F9FAFB !important;
+            border-radius: 10px !important;
+            border-color: rgba(255,255,255,0.12) !important;
+            background: rgba(255,255,255,0.06) !important;
+            color: #F1F5F9 !important;
         }
         div[data-baseweb="select"] > div:focus-within {
-            border-color: #2563EB !important;
-            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.12) !important;
+            border-color: rgba(59,130,246,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 0 20px rgba(59,130,246,0.1) !important;
+        }
+        input[type="text"], .stTextInput input {
+            background: rgba(255,255,255,0.06) !important;
+            border: 1px solid rgba(255,255,255,0.10) !important;
+            border-radius: 10px !important;
+            color: #F1F5F9 !important;
+        }
+        input[type="text"]:focus, .stTextInput input:focus {
+            border-color: rgba(59,130,246,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
         }
 
         /* ── Dataframe ─────────────────────────────────────────────── */
         div[data-testid="stDataFrame"] > div {
-            border-radius: 12px !important;
-            border: 1px solid #E5E7EB !important;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06) !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(255,255,255,0.09) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
             overflow: hidden;
+            backdrop-filter: blur(16px) !important;
         }
-        div.stAlert { border-radius: 10px !important; }
+        div.stAlert { border-radius: 12px !important; }
+
+        /* ── Caption / small text ──────────────────────────────────── */
+        .stCaption, [data-testid="stCaptionContainer"] p {
+            color: rgba(241,245,249,0.45) !important;
+        }
+
+        /* ── Toggle ────────────────────────────────────────────────── */
+        [data-testid="stToggle"] label {
+            color: rgba(241,245,249,0.75) !important;
+        }
 
         /* ── Footer ────────────────────────────────────────────────── */
         .app-footer {
             display: flex; justify-content: space-between; align-items: center;
-            background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
             padding: 14px 24px; margin-top: 28px;
-            font-size: 12px; color: #9CA3AF;
+            font-size: 12px; color: rgba(241,245,249,0.4);
         }
         .footer-left { display: flex; align-items: center; gap: 10px; }
         .footer-dot  {
-            width: 4px; height: 4px; background: #D1D5DB; border-radius: 50%;
+            width: 3px; height: 3px; background: rgba(241,245,249,0.2); border-radius: 50%;
         }
         </style>
         """,
@@ -334,8 +461,21 @@ def _safe_url(url: str) -> str:
 
 
 def render_app_header(api_ok: bool) -> None:
+    api_badge = (
+        '<span style="display:inline-flex;align-items:center;gap:6px;'
+        'background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.25);'
+        'border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:#34D399;">'
+        '<span style="width:6px;height:6px;background:#34D399;border-radius:50%;'
+        'box-shadow:0 0 6px rgba(52,211,153,0.8);display:inline-block;"></span>'
+        'API Connected</span>'
+        if api_ok else
+        '<span style="display:inline-flex;align-items:center;gap:6px;'
+        'background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.25);'
+        'border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:#FCA5A5;">'
+        '⚠ No API Key</span>'
+    )
     st.markdown(
-        """
+        f"""
         <div class="app-header">
           <div class="app-header-left">
             <div class="app-icon-wrap">📰</div>
@@ -343,6 +483,12 @@ def render_app_header(api_ok: bool) -> None:
               <h1 class="app-title">Dasbor Pantauan Berita Ekonomi</h1>
               <p class="app-subtitle">BPS Kabupaten Lombok Tengah &nbsp;·&nbsp; Analisis PDRB 2026</p>
             </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;position:relative;z-index:1;">
+            {api_badge}
+            <span class="live-badge">
+              <span class="live-dot"></span>LIVE
+            </span>
           </div>
         </div>
         """,
@@ -436,23 +582,23 @@ def render_empty_state(variant: str = "initial") -> None:
 def donut_chart(df: pd.DataFrame) -> go.Figure:
     counts  = df["Sumber"].value_counts()
     palette = [
-        "#2563EB","#7C3AED","#059669","#D97706","#DC2626",
-        "#0891B2","#65A30D","#EA580C","#6366F1","#14B8A6",
+        "#3B82F6","#8B5CF6","#10B981","#F59E0B","#EF4444",
+        "#06B6D4","#84CC16","#F97316","#6366F1","#14B8A6",
     ]
     fig = go.Figure(data=[go.Pie(
         labels=counts.index.tolist(),
         values=counts.values.tolist(),
-        hole=0.60,
-        marker=dict(colors=palette[:len(counts)], line=dict(color="#F3F4F6", width=2)),
+        hole=0.62,
+        marker=dict(colors=palette[:len(counts)], line=dict(color="rgba(6,9,24,0.8)", width=3)),
         textinfo="label+percent",
-        textfont=dict(size=11, family="Inter, sans-serif"),
+        textfont=dict(size=11, family="Inter, sans-serif", color="#F1F5F9"),
         hovertemplate="<b>%{label}</b><br>%{value} berita (%{percent})<extra></extra>",
     )])
     fig.update_layout(
         showlegend=False,
-        margin=dict(t=0, b=0, l=0, r=0), height=260,
+        margin=dict(t=0, b=0, l=0, r=0), height=270,
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif"),
+        font=dict(family="Inter, sans-serif", color="#F1F5F9"),
     )
     return fig
 
@@ -463,17 +609,17 @@ def render_sentiment_cards(df: pd.DataFrame) -> None:
     netral     = int((df["Dampak Ekonomi"] == "🟡 Netral").sum())
     menghambat = int((df["Dampak Ekonomi"] == "🔴 Menghambat").sum())
     cards = [
-        ("🟢", "Mendukung",  mendukung,  f"{mendukung /total*100:.0f}% berita", "#D1FAE5", "#064E3B", "#059669"),
-        ("🟡", "Netral",     netral,     f"{netral    /total*100:.0f}% berita", "#FEF9C3", "#713F12", "#CA8A04"),
-        ("🔴", "Menghambat", menghambat, f"{menghambat/total*100:.0f}% berita", "#FEE2E2", "#7F1D1D", "#DC2626"),
+        ("🟢", "Mendukung",  mendukung,  f"{mendukung /total*100:.0f}% berita", "rgba(16,185,129,0.10)", "rgba(52,211,153,0.7)", "#10B981"),
+        ("🟡", "Netral",     netral,     f"{netral    /total*100:.0f}% berita", "rgba(245,158,11,0.10)", "rgba(251,191,36,0.7)", "#F59E0B"),
+        ("🔴", "Menghambat", menghambat, f"{menghambat/total*100:.0f}% berita", "rgba(239,68,68,0.10)",  "rgba(252,165,165,0.8)", "#EF4444"),
     ]
     cols = st.columns(3)
     for col, (icon, label, value, sub, bg, text, accent) in zip(cols, cards):
         col.markdown(
-            f'<div class="kpi-card" style="--kpi-color:{accent};background:{bg};border-color:{accent}33;">'
+            f'<div class="kpi-card" style="--kpi-color:{accent};background:{bg};border-color:{accent}40;">'
             f'<span class="kpi-icon">{icon}</span>'
-            f'<div class="kpi-label" style="color:{text}99;">{label}</div>'
-            f'<div class="kpi-value" style="color:{text};">{value}</div>'
+            f'<div class="kpi-label" style="color:{text};">{label}</div>'
+            f'<div class="kpi-value" style="color:#F1F5F9;">{value}</div>'
             f'<div class="kpi-sub">{sub}</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -484,7 +630,7 @@ def component_pie(df: pd.DataFrame) -> go.Figure:
     counts  = df["Komponen PDRB"].value_counts()
     labels: List[str] = []
     values: List[int] = []
-    palette = ["#2563EB", "#7C3AED", "#059669", "#D97706", "#6B7280"]
+    palette = ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#94A3B8"]
     order   = list(PDRB_COMPONENTS.keys()) + ["Lainnya"]
     for comp in order:
         if comp in counts.index:
@@ -492,17 +638,17 @@ def component_pie(df: pd.DataFrame) -> go.Figure:
             labels.append(cfg["label"] if cfg else comp)
             values.append(int(counts[comp]))
     fig = go.Figure(data=[go.Pie(
-        labels=labels, values=values, hole=0.60,
-        marker=dict(colors=palette[:len(labels)], line=dict(color="#F3F4F6", width=2)),
+        labels=labels, values=values, hole=0.62,
+        marker=dict(colors=palette[:len(labels)], line=dict(color="rgba(6,9,24,0.8)", width=3)),
         textinfo="label+percent",
-        textfont=dict(size=11, family="Inter, sans-serif"),
+        textfont=dict(size=11, family="Inter, sans-serif", color="#F1F5F9"),
         hovertemplate="<b>%{label}</b><br>%{value} berita (%{percent})<extra></extra>",
     )])
     fig.update_layout(
         showlegend=False,
-        margin=dict(t=0, b=0, l=0, r=0), height=260,
+        margin=dict(t=0, b=0, l=0, r=0), height=270,
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif"),
+        font=dict(family="Inter, sans-serif", color="#F1F5F9"),
     )
     return fig
 
@@ -526,13 +672,18 @@ def render_ringkasan(df: pd.DataFrame, cfg: Dict) -> None:
         tren = "menunjukkan kondisi ekonomi yang relatif berimbang"
 
     st.markdown(
-        f'<div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;padding:18px 22px;margin-top:16px;">'
-        f'<div style="font-size:11px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">📋 Ringkasan Analis</div>'
-        f'<p style="font-size:13.5px;color:#1E3A5F;line-height:1.7;margin:0;">'
-        f'Berdasarkan <strong>{total} berita</strong>, tren ekonomi di <strong>{_e(region)}</strong> '
-        f'pada <strong>{_e(triwulan)}</strong> {tren}. '
-        f'Komponen PDRB yang paling banyak teridentifikasi adalah <strong>{_e(top_label)}</strong>, '
-        f'dengan <strong>{mendukung} berita mendukung</strong> dan <strong>{menghambat} berita mengindikasikan hambatan</strong>.'
+        f'<div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);'
+        f'border-radius:14px;padding:18px 22px;margin-top:16px;'
+        f'backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">'
+        f'<div style="font-size:10px;font-weight:700;color:rgba(147,197,253,0.8);'
+        f'text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">📋 Ringkasan Analis</div>'
+        f'<p style="font-size:13.5px;color:rgba(241,245,249,0.82);line-height:1.75;margin:0;">'
+        f'Berdasarkan <strong style="color:#F1F5F9;">{total} berita</strong>, tren ekonomi di '
+        f'<strong style="color:#93C5FD;">{_e(region)}</strong> '
+        f'pada <strong style="color:#93C5FD;">{_e(triwulan)}</strong> {tren}. '
+        f'Komponen PDRB yang paling banyak teridentifikasi adalah <strong style="color:#F1F5F9;">{_e(top_label)}</strong>, '
+        f'dengan <strong style="color:#6EE7B7;">{mendukung} berita mendukung</strong> dan '
+        f'<strong style="color:#FCA5A5;">{menghambat} berita mengindikasikan hambatan</strong>.'
         f'</p>'
         f'</div>',
         unsafe_allow_html=True,
@@ -543,16 +694,20 @@ def trend_bar_chart(series: pd.Series, height: int = 260) -> go.Figure:
     fig = go.Figure(data=[go.Bar(
         x=series.index.tolist(),
         y=series.values.tolist(),
-        marker_color="#2563EB",
-        marker_line_width=0,
+        marker=dict(
+            color=series.values.tolist(),
+            colorscale=[[0, "#1D4ED8"], [0.5, "#4F46E5"], [1, "#8B5CF6"]],
+            line=dict(width=0),
+        ),
         hovertemplate="%{x}<br>%{y} berita<extra></extra>",
     )])
     fig.update_layout(
         margin=dict(t=8, b=0, l=0, r=0), height=height,
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=11),
-        xaxis=dict(showgrid=False, tickangle=-45),
-        yaxis=dict(showgrid=True, gridcolor="#F3F4F6", zeroline=False),
+        font=dict(family="Inter, sans-serif", size=11, color="rgba(241,245,249,0.65)"),
+        xaxis=dict(showgrid=False, tickangle=-45, tickfont=dict(color="rgba(241,245,249,0.5)")),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", zeroline=False,
+                   tickfont=dict(color="rgba(241,245,249,0.5)")),
     )
     return fig
 
@@ -797,10 +952,11 @@ if not df.empty:
 
         uraian_val = df["Uraian KBLI"].iloc[0] if not df.empty else "—"
         st.markdown(
-            f'<div style="background:#EFF6FF;border-left:4px solid #2563EB;'
-            f'border-radius:10px;padding:14px 18px;margin-top:10px;">'
-            f'<strong style="color:#1E40AF;">{_e(cfg.get("kbli","—"))}</strong><br>'
-            f'<span style="color:#3B82F6;font-size:13px;">{_e(uraian_val)}</span>'
+            f'<div style="background:rgba(59,130,246,0.08);border-left:3px solid #3B82F6;'
+            f'border-radius:12px;padding:14px 18px;margin-top:10px;'
+            f'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">'
+            f'<strong style="color:#93C5FD;font-size:13px;">{_e(cfg.get("kbli","—"))}</strong><br>'
+            f'<span style="color:rgba(241,245,249,0.55);font-size:12.5px;">{_e(uraian_val)}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -834,7 +990,8 @@ if not df.empty:
     if has_analysis:
         render_ringkasan(df, cfg)
         st.markdown(
-            '<p style="margin-top:10px;font-size:11.5px;color:#9CA3AF;font-style:italic;text-align:center;">'
+            '<p style="margin-top:12px;font-size:11.5px;color:rgba(241,245,249,0.35);'
+            'font-style:italic;text-align:center;">'
             '⚠️ Analisis ini bersifat otomatis berbasis pencocokan kata kunci (rule-based AI). '
             'Hasil ini merupakan bahan pendukung awal dan perlu divalidasi oleh analis BPS '
             'sebelum digunakan sebagai dasar estimasi PDRB resmi.'
